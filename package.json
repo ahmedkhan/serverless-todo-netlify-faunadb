@@ -1,0 +1,13 @@
+{
+  "name": "serverless-todo-netlify-faunadb",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/ahmedkhan/serverless-todo-netlify-faunadb.git",
+  "author": "Ahmed Khan <ahmed.khan8845@gmail.com>",
+  "license": "MIT",
+  "private":"true",
+  "workspaces":[
+    "packages/*"
+  ]
+}
+  
