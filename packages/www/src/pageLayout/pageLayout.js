@@ -1,12 +1,11 @@
-import React, { useContext } from "react" ;
-import { Container, Heading, Button, Flex, NavLink } from "theme-ui";
+import React from "react" ;
+import { Container,Flex, NavLink } from "theme-ui";
 import { Link } from 'gatsby';
+import { identityContext } from "../context/authContext"
 
+ 
 
-export default ({children}) => {
-
-     const user = ""
-    
+export default ({children}) => { 
     return(
       <div>
         <Flex as='nav'>
@@ -15,19 +14,14 @@ export default ({children}) => {
                 </NavLink>
                 <NavLink as={Link} to={"/dashboard"} p={2}>
                     DashBoard
-                </NavLink>
-                 {
-                     user && (
-                         <NavLink href='#!' p={2}>
-                          {user}
-                        </NavLink>
-                     )
-                 }
+                </NavLink>       
                 
             </Flex>
-
-            <Container fluid>{children}</Container>
+            <Container>{children}</Container>
       </div>
     )
 
-}
+};
+
+
+
