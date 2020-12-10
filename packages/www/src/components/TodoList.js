@@ -1,4 +1,4 @@
-import React, { useContext, useRef, useState, useEffect } from "react";
+import React, { useContext, useRef, useEffect } from "react";
 import { Container, Checkbox, Button, Flex, Input, Label } from "theme-ui";
 import { useQuery, gql, useMutation } from '@apollo/client';
 import { identityContext } from "../context/authContext";
@@ -38,6 +38,7 @@ export default props => {
     const { user, identity } = useContext(identityContext);
     const inputRef = useRef();
     console.log(data)
+
     useEffect(() => {
         async function fetchData() {
             await refetch();
@@ -46,7 +47,7 @@ export default props => {
         fetchData()
 
     }, [user])
-
+ 
     return (
         !!user ? (
             <Container>
@@ -78,7 +79,7 @@ export default props => {
                                             await updateTodoDone({ variables: { id: todo.id } });
                                             await refetch();
                                         }}>
-                                        <Checkbox checked={todo.done} />
+                                        <Checkbox checked={todo.done} readOnly={true} />
                                         <span >{todo.text}</span>
                                     </Flex>
                                 ))

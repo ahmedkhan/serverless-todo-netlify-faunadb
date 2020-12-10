@@ -1,7 +1,6 @@
 import React from "react" ;
 import { Container,Flex, NavLink } from "theme-ui";
 import { Link } from 'gatsby';
-import { identityContext } from "../context/authContext"
 
  
 
