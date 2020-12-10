@@ -1,25 +1,137 @@
-const { ApolloServer, gql } = require('apollo-server-lambda');
+const { ApolloServer, gql } = require("apollo-server-lambda");
+const faunadb = require("faunadb"),
+  q = faunadb.query
 
+
+  var client = new faunadb.Client({
+    secret: "fnAD8bjjSQACASY2ZHGPbEwJCfMHu_D8MjvEh9nh",
+  })
 
 const typeDefs = gql`
   type Query {
-      hello:String
-  }  
+    todos: [Todo]!
+  }
+  type Todo{
+      id: ID!
+      text: String!
+      done: Boolean!
+  }
+  type Mutation{
+      addTodo(text: String!):Todo
+      updateTodoDone(id: ID!): Todo
+  }
 `;
 
 const resolvers = {
-    Query:{
-      hello:()=>'hello world',
-    },
-}
+  Query: {
+    todos: async (parent, args, {user}) => {
+      if (!user){
+        return [];
+      }
+      else{
+
+        try{
+        
+        const results = await client.query(
+          q.Paginate(q.Match(q.Index("todos_by_user"), user))
+      )
+
+      return results.data.map(([ref,text,done])=>({
+        id: ref.id,
+        text,
+        done
+      }))
+
+    }
+    catch(e){
+
+      return e.toString() 
+    }
+
+
+
+    }
+
+
+
+    }
+  },
+  Mutation:{
+      addTodo: async (_,{text},{user})=>{
+
+        if (!user){
+          throw new Error ("Must be authenticated to insert todos")
+        }
+        
+        const results = await client.query(
+          q.Create(q.Collection("todos"),{
+          data:{
+              text: text,
+              done: false,
+              owner: user
+          } 
+          })
+      );
+
+
+        return ({
+          ...results.data,
+          id: results.ref.id
+        }
+        )
+      },
+      updateTodoDone: async (_,{id}, {user})=>{
+
+        if (!user){
+          throw new Error ("Must be authenticated to update todos")
+        }
+
+        const results = await client.query(
+          q.Update(q.Ref(q.Collection("todos"),id),
+          {
+          data:{
+              done:true
+          }
+      }
+          )
+      )
+
+      return (
+        {
+          ...results.data,
+          id: results.ref.id
+        }
+      )
+
+      }
+  }
+};
 
 const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    playground: true,
-    introspection: true
+  typeDefs,
+  resolvers,
+  context: ({context})=>{
+    if (context.clientContext.user){
+      return(
+        {
+          user: context.clientContext.user.sub
+        }
+      )
+    }
+
+    else{
+      return {};
+    }
+    
+  },
+  playground: true,
+  introspection: true
 });
 
-
-exports.handler = server.createHandler({});
+exports.handler = server.createHandler({
+    cors: {
+        origin: "*",
+        credentials: true,
+    },
+});
 

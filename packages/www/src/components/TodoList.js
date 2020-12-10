@@ -10,7 +10,7 @@ const ADD_TODO = gql`
     }
   }
 `;
- 
+
 const UPDATE_TODO_DONE = gql`
   mutation UpdateTodoDone($id:ID!){
     updateTodoDone(id:$id){
@@ -32,11 +32,15 @@ const GET_TODOS = gql`
 
 
 export default props => {
+    const [addTodo] = useMutation(ADD_TODO);
+    const [updateTodoDone] = useMutation(UPDATE_TODO_DONE);
+    const { loading, error, data, refetch } = useQuery(GET_TODOS,{fetchPolicy:"cache-first"});
     const { user, identity } = useContext(identityContext);
     const inputRef = useRef();
-
+    console.log(data)
     useEffect(() => {
         async function fetchData() {
+            await refetch();
         }
 
         fetchData()
@@ -48,9 +52,11 @@ export default props => {
             <Container>
                 <h2>{user.user_metadata.full_name}'s Notebook</h2>
                 <Flex as="form"
-                    onSubmit={async e => {
-                        e.preventDefault();
-                        alert("done");
+                    onSubmit={async e=>{
+                      e.preventDefault();
+                     await addTodo({variables:{text:inputRef.current.value}})                      
+                      inputRef.current.value="";
+                     await refetch();
                     }}
                 >
                     <Label sx={{ display: "flex" }}>
@@ -59,8 +65,26 @@ export default props => {
                     </Label>
                     <Button sx={{ marginLeft: 1 }}>Submit</Button>
                 </Flex>
-                <Flex sx={{flexDirection:"column"}}>
-                  
+                <Flex sx={{ flexDirection: "column" }}>
+                    {loading ? <div>Loading...</div> : null}
+                    {error ? <div>{error.message}</div> : null}
+                    {!loading && !error && (
+                        <ul sx={{ listStyleType: "none" }}>
+                            {
+                                data.todos.map(todo => (
+                                    <Flex key={todo.id}
+                                        as="li"
+                                        onClick={async () => {
+                                            await updateTodoDone({ variables: { id: todo.id } });
+                                            await refetch();
+                                        }}>
+                                        <Checkbox checked={todo.done} />
+                                        <span >{todo.text}</span>
+                                    </Flex>
+                                ))
+                            }
+                        </ul>
+                    )}
                 </Flex>
             </Container>
 
